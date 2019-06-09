@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify, make_response, session, redirect, url_for
+from flask import Flask, request, jsonify, make_response, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
+# init app instance
 app = Flask(__name__)
-app.secret_key = 'secret'
+app.secret_key = 'secret_#$%%879'
+# database url for app
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///todo.db'
 
 db = SQLAlchemy(app)
@@ -24,15 +25,17 @@ class Todo(db.Model):
     user_id = db.Column(db.Integer)
 
 
+# getting all users
 @app.route('/user/', methods=['GET'])
 def get_all_users():
     # check if user is logged in
     if 'name' not in session:
         return jsonify({'message': 'You need to login!'})
-    # check if user is admin
+    # check if user is admin so as to perform operation
     user = User.query.filter_by(name=session['name']).first()
     if not user.admin:
         return jsonify({'message': 'Cannot Perform that function'})
+    # get all users otherwise
     users = User.query.all()
     output = []
     for user in users:
@@ -45,6 +48,7 @@ def get_all_users():
     return jsonify({'users': output})
 
 
+# getting one user
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_one_user(user_id):
     # check if user is logged in
@@ -66,6 +70,7 @@ def get_one_user(user_id):
     return jsonify({'user': user_data})
 
 
+# creating a user
 @app.route('/user/', methods=['POST'])
 def create_user():
     # check if user is logged in
@@ -87,6 +92,7 @@ def create_user():
     return jsonify({'message': "New User Created!"})
 
 
+# promoting a user to admin
 @app.route('/user/<int:user_id>', methods=['PUT'])
 def promote_user(user_id):
     # check if user is logged in
@@ -105,6 +111,7 @@ def promote_user(user_id):
     return jsonify({'message': 'User has been promoted'})
 
 
+# deleting a user
 @app.route('/user/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     # check if user is logged in
@@ -121,7 +128,8 @@ def delete_user(user_id):
     db.session.commit()
     return jsonify({'message': 'The user has been deleted'})
 
-# logging in functionality
+
+# logging in users
 @app.route('/login')
 def login():
     auth = request.authorization
@@ -136,7 +144,7 @@ def login():
     return make_response('Could not verify', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
-# logging out functionality
+# logging out users
 @app.route('/logout')
 def logout():
     # remove name from session if it is there
@@ -144,9 +152,9 @@ def logout():
     return jsonify({'message': 'Logout successful!'})
 
 
-# defining the todo routes
+# defining the todo routes and there specific functionality
 
-
+# getting all todos
 @app.route('/todo', methods=['GET'])
 def get_all_todos():
     # check if user is logged in
@@ -164,6 +172,8 @@ def get_all_todos():
         output.append(todo_data)
     return jsonify({'todos': output})
 
+
+# getting one todo
 @app.route('/todo/<int:todo_id>', methods=['GET'])
 def get_one_todo(todo_id):
     # check if user is logged in
@@ -181,6 +191,7 @@ def get_one_todo(todo_id):
     return jsonify({'todo': todo_data})
 
 
+# creating a todo
 @app.route('/todo', methods=['POST'])
 def create_todo():
     # check if user is logged in
@@ -195,6 +206,7 @@ def create_todo():
     return jsonify({'message': 'New Todo Created!'})
 
 
+# completing a todo
 @app.route('/todo/<int:todo_id>', methods=['PUT'])
 def complete_todo(todo_id):
     # check if user is logged in
@@ -208,7 +220,7 @@ def complete_todo(todo_id):
     db.session.commit()
     return jsonify({'message': "Todo Item has been completed"})
 
-
+# deleting a todo
 @app.route('/todo/<int:todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
     # check if user is logged in
